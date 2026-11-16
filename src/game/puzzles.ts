@@ -4,6 +4,7 @@
 
 import type { Difficulty, GameState, Puzzle } from '../core/types'
 import { RAW_PUZZLES } from './puzzles-data'
+import { IMPORTED_PUZZLES } from './imported-puzzles'
 import {
   decodeClues,
   decodeMines,
@@ -37,12 +38,12 @@ export function decodePuzzle(raw: RawPuzzle): MinesweeperPuzzle | null {
   }
 }
 
-export const builtinPuzzles: Puzzle[] = (RAW_PUZZLES as RawPuzzle[])
+export const builtinPuzzles: Puzzle[] = ([...RAW_PUZZLES, ...IMPORTED_PUZZLES] as RawPuzzle[])
   .map(decodePuzzle)
   .filter((p): p is MinesweeperPuzzle => p !== null)
 
 export function getReferenceSolution(id: string): GameState | null {
-  const raw = (RAW_PUZZLES as RawPuzzle[]).find((p) => p.id === id)
+  const raw = ([...RAW_PUZZLES, ...IMPORTED_PUZZLES] as RawPuzzle[]).find((p) => p.id === id)
   if (!raw || typeof raw.solution !== 'string') return null
   const puzzle = decodePuzzle(raw)
   if (!puzzle) return null
@@ -56,3 +57,4 @@ export function getReferenceSolution(id: string): GameState | null {
   }
   return state
 }
+

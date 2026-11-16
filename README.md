@@ -83,3 +83,40 @@ npm run check     # 审计题库
 npm run verify    # 参考解、逻辑回放与交互验证
 npm run audit     # 逐题审计逻辑解题
 ```
+
+## 图片识别导入
+
+用 Playwright + Edge 识别题面图片里的网格与数字线索，生成题库格式后预览 / 写入。
+
+```bash
+# 只识别 + 预览
+npm run import-image -- 题面.png
+
+# 只识别网格与数字
+npm run import-image -- 题面.png --dry
+
+# 唯一性检查（大型扫雷题常超时，会给出警告）
+npm run import-image -- 题面.png --verify
+
+# 追加到题库（写入 src/game/imported-puzzles.ts，npm run gen 不会覆盖）
+npm run import-image -- 题面.png --name "我的扫雷" --append
+```
+
+| 参数 | 说明 |
+|------|------|
+| `--name 名称` | 题库中显示的名称（默认「识图 · W×H」） |
+| `--series 系列` | 系列名（默认「图片导入」） |
+| `--difficulty 级别` | `easy` / `medium` / `hard` / `custom`（默认 `hard`） |
+| `--size N` | 正方形网格边长；默认自动识别 |
+| `--width N` / `--height N` | 非正方形题图的宽/高，可只给一边 |
+| `--map 行,列=数字` | 人工覆盖某格线索（行列从 1 开始；0-8 为数字，`.` 表示无数字） |
+| `--append` | 写入 `src/game/imported-puzzles.ts` |
+| `--verify` | 唯一性检查（超时会警告，不阻断导入） |
+| `--dry` | 只识别网格与数字，不求解、不写入 |
+| `--max-nodes N` | 唯一性搜索节点上限（默认 300000） |
+| `--edge PATH` | 指定 Edge 路径（默认自动探测） |
+
+识别流程：以亮度众数作背景色 → 多档阈值投影找网格线 → 每格提取数字墨迹并过滤格子边上的立体高光/阴影 →
+多套无衬线字体模板 IoU 匹配 0-9 → 再用「同色必同数字」的多数表决自动纠正个别低置信度字形。
+网格外的坐标标签不会被识别成数字。
+
